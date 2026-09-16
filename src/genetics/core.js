@@ -2,6 +2,8 @@
 // features. Genotypes are always represented as a 2-character string,
 // e.g. "Aa", with uppercase = dominant allele, lowercase = recessive.
 
+import { summarizeCounts, countBy } from './ratio'
+
 const GENOTYPE_PATTERN = /^[A-Za-z]{2}$/
 
 export function validateGenotype(genotype) {
@@ -70,41 +72,9 @@ export function crossGenotypes(genotype1, genotype2) {
 
 export function summarizeCross(grid, trait) {
   const cells = grid.flat()
-  const total = cells.length
-
-  const genotypeCounts = new Map()
-  const phenotypeCounts = new Map()
-
-  for (const genotype of cells) {
-    genotypeCounts.set(genotype, (genotypeCounts.get(genotype) ?? 0) + 1)
-    const phenotype = phenotypeFor(genotype, trait)
-    phenotypeCounts.set(phenotype, (phenotypeCounts.get(phenotype) ?? 0) + 1)
-  }
-
-  const toRatioEntries = (counts) => {
-    const values = [...counts.values()]
-    const divisor = gcdAll(values)
-    return [...counts.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .map(([label, count]) => ({
-        label,
-        count,
-        ratioPart: count / divisor,
-        percent: (count / total) * 100,
-      }))
-  }
-
   return {
-    total,
-    genotypes: toRatioEntries(genotypeCounts),
-    phenotypes: toRatioEntries(phenotypeCounts),
+    total: cells.length,
+    genotypes: summarizeCounts(countBy(cells, (g) => g)),
+    phenotypes: summarizeCounts(countBy(cells, (g) => phenotypeFor(g, trait))),
   }
-}
-
-function gcd(a, b) {
-  return b === 0 ? a : gcd(b, a % b)
-}
-
-function gcdAll(values) {
-  return values.reduce((acc, v) => gcd(acc, v), values[0] ?? 1)
 }

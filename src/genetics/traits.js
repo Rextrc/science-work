@@ -32,6 +32,24 @@ export const TRAITS = [
   },
 ]
 
+// Classic IGCSE X-linked recessive conditions.
+export const SEX_LINKED_TRAITS = [
+  {
+    id: 'colorBlindness',
+    name: 'Red-Green Colour Blindness',
+    allele: 'N',
+    dominantTrait: 'Normal vision',
+    recessiveTrait: 'Colour blind',
+  },
+  {
+    id: 'haemophilia',
+    name: 'Haemophilia',
+    allele: 'H',
+    dominantTrait: 'Normal clotting',
+    recessiveTrait: 'Haemophilia',
+  },
+]
+
 export const CONDITION_TRAIT = {
   id: 'condition',
   name: 'Condition',
