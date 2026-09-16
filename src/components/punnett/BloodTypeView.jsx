@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { BLOOD_GENOTYPES, crossBloodTypes, summarizeBloodTypeCross, alleleLabel, phenotypeForAlleles } from '../../genetics/bloodType'
 import CrossGrid from '../shared/CrossGrid'
 import RatioBreakdown from '../shared/RatioBreakdown'
+import HelpPopup from '../shared/HelpPopup'
 
 const PHENOTYPE_COLORS = { A: '#0d9488', B: '#0369a1', AB: '#7c3aed', O: '#f59e0b' }
 
@@ -36,6 +37,10 @@ export default function BloodTypeView() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
+      <HelpPopup id="bloodtype" title="How to use this">
+        Pick each parent's blood type genotype from the dropdowns. The grid shows every possible blood type their
+        child could have — notice how IA and IB never "hide" each other, so a child with one of each is type AB.
+      </HelpPopup>
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Codominance &amp; Multiple Alleles</h1>
         <p className="mt-1 text-slate-600">

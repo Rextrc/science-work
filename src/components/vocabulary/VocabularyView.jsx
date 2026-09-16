@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { loadTerms, saveTerms } from '../../genetics/vocabulary'
 import FlashCard from './FlashCard'
+import HelpPopup from '../shared/HelpPopup'
 
 function shuffle(items) {
   const copy = [...items]
@@ -50,6 +51,11 @@ export default function VocabularyView() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
+      <HelpPopup id="vocabulary" title="How to use Vocabulary">
+        Tap the card to flip it. In <strong>Study</strong> mode, click "Edit definition" to type the answer in your
+        own words — it saves automatically. Switch to <strong>Quiz</strong> mode to test yourself: try to recall the
+        answer, then tap "Show answer" and mark whether you got it.
+      </HelpPopup>
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Vocabulary</h1>
         <p className="mt-1 text-slate-600">

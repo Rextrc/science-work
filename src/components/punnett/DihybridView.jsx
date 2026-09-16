@@ -4,6 +4,7 @@ import { crossDihybrid, summarizeDihybridCross } from '../../genetics/dihybrid'
 import GenotypeSelect from './GenotypeSelect'
 import CrossGrid from '../shared/CrossGrid'
 import RatioBreakdown from '../shared/RatioBreakdown'
+import HelpPopup from '../shared/HelpPopup'
 
 const het = (allele) => `${allele}${allele.toLowerCase()}`
 const homRec = (allele) => `${allele.toLowerCase()}${allele.toLowerCase()}`
@@ -43,6 +44,10 @@ export default function DihybridView() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
+      <HelpPopup id="dihybrid" title="How to use this">
+        Pick two different traits, then choose a genotype for each trait for both parents. The 16-box grid shows
+        every combination the children could inherit for both traits at once.
+      </HelpPopup>
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Dihybrid Cross</h1>
         <p className="mt-1 text-slate-600">

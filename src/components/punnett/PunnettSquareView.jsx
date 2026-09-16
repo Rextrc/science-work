@@ -5,6 +5,7 @@ import GenotypeSelect from './GenotypeSelect'
 import GenotypeTextInput from './GenotypeTextInput'
 import PunnettGrid from './PunnettGrid'
 import ResultsSummary from './ResultsSummary'
+import HelpPopup from '../shared/HelpPopup'
 
 export default function PunnettSquareView() {
   const [mode, setMode] = useState('preset') // 'preset' | 'manual'
@@ -53,6 +54,10 @@ export default function PunnettSquareView() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
+      <HelpPopup id="monohybrid" title="How to use this">
+        Pick a trait, then choose each parent's genotype from the dropdowns (or type your own under "Enter genotypes
+        manually"). The grid fills in automatically with every possible offspring, plus the ratios below it.
+      </HelpPopup>
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Punnett Square Generator</h1>
         <p className="mt-1 text-slate-600">

@@ -3,6 +3,7 @@ import { TRAITS, CONDITION_TRAIT } from '../../genetics/traits'
 import IndividualForm from './IndividualForm'
 import PedigreeChart from './PedigreeChart'
 import PedigreeLegend from './PedigreeLegend'
+import HelpPopup from '../shared/HelpPopup'
 
 const TRAIT_OPTIONS = [CONDITION_TRAIT, ...TRAITS]
 
@@ -32,6 +33,11 @@ export default function PedigreeView() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
+      <HelpPopup id="pedigree" title="How to use this">
+        Add family members one at a time, starting with the oldest generation. Pick their parents from the list once
+        they exist. Squares are boys, circles are girls — check the legend below for what filled shapes and dots
+        mean.
+      </HelpPopup>
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Pedigree Chart Builder</h1>
         <p className="mt-1 text-slate-600">

@@ -3,6 +3,7 @@ import { SEX_LINKED_TRAITS } from '../../genetics/traits'
 import { crossSexLinked, summarizeSexLinkedCross, describeCell } from '../../genetics/sexLinked'
 import CrossGrid from '../shared/CrossGrid'
 import RatioBreakdown from '../shared/RatioBreakdown'
+import HelpPopup from '../shared/HelpPopup'
 
 export default function SexLinkedView() {
   const [traitId, setTraitId] = useState(SEX_LINKED_TRAITS[0].id)
@@ -34,6 +35,10 @@ export default function SexLinkedView() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
+      <HelpPopup id="sexlinked" title="How to use this">
+        Pick the mum's and dad's genotypes. Since boys only inherit one X chromosome (plus a Y), they can never be a
+        "carrier" like girls can — they're always either affected or unaffected.
+      </HelpPopup>
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Sex-Linked Inheritance</h1>
         <p className="mt-1 text-slate-600">
