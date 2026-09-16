@@ -9,24 +9,16 @@ const LINE_COLOR = '#94a3b8' // slate-400
 function IndividualNode({ ind, pos, info, radius }) {
   const { x: cx, y: cy } = pos
   const isSquare = ind.sex === 'male'
-  const clipId = `clip-${ind.id}`
 
   const shapeProps = isSquare
     ? { x: cx - radius, y: cy - radius, width: radius * 2, height: radius * 2 }
     : { cx, cy, r: radius }
 
-  const affected = info.known && info.phenotype && info.phenotype === info.trait.recessiveTrait
-  const uncertainPhenotype = info.known && !info.certain && info.phenotype === null
+  const affected = info.known && info.phenotype === info.trait.recessiveTrait
   const unknown = !info.known
 
   return (
     <g>
-      <defs>
-        <clipPath id={clipId}>
-          {isSquare ? <rect {...shapeProps} /> : <circle {...shapeProps} />}
-        </clipPath>
-      </defs>
-
       {isSquare ? (
         <rect
           {...shapeProps}
@@ -45,12 +37,6 @@ function IndividualNode({ ind, pos, info, radius }) {
         />
       )}
 
-      {uncertainPhenotype && (
-        <g clipPath={`url(#${clipId})`}>
-          <rect x={cx - radius} y={cy - radius} width={radius} height={radius * 2} fill={AFFECTED_FILL} />
-        </g>
-      )}
-
       {info.carrier === 'confirmed' && (
         <circle cx={cx} cy={cy} r={radius * 0.28} fill={STROKE} />
       )}
@@ -67,7 +53,7 @@ function IndividualNode({ ind, pos, info, radius }) {
         {ind.name}
       </text>
       <text x={cx} y={cy + radius + 30} textAnchor="middle" fontSize={11} fill="#64748b">
-        {info.known && info.genotype ? info.genotype : info.known && !info.certain ? '?' : ''}
+        {info.known ? (info.certain ? info.genotype : '?') : ''}
         {info.phenotype ? ` · ${info.phenotype}` : ''}
       </text>
     </g>

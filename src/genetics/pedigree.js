@@ -1,77 +1,62 @@
-// Genotype inference for the pedigree chart. Genotypes are stored in a
-// trait-neutral canonical form ('AA' | 'Aa' | 'aa') so switching the
-// pedigree's active trait doesn't require re-entering data; the real
-// allele letters (from genetics/traits.js) are only substituted in for
-// display.
+// Genotype inference for the pedigree chart, reusing the exact same
+// monohybrid cross engine as the Punnett Square feature (crossGenotypes).
+//
+// Rule (deliberately simple, one hop only): if BOTH of an individual's
+// parents have a certain genotype (entered directly, or themselves
+// resolved with certainty), cross those two genotypes with the Feature 1
+// Punnett logic. If all 4 resulting boxes are the same genotype, the
+// child's genotype is certain. If they differ but share a phenotype, the
+// child's phenotype is certain and they're flagged a possible carrier.
+// Otherwise (a parent is missing, or itself uncertain, or the cross gives
+// mixed phenotypes) the individual is simply "unknown" - the app does not
+// chain guesses through multiple uncertain generations.
+//
+// Genotypes are stored per individual in a trait-neutral canonical form
+// ('AA' | 'Aa' | 'aa'); the real allele letters (genetics/traits.js) are
+// only substituted in for display.
+import { crossGenotypes, isDominantPhenotype } from './core'
 
-const CANONICAL_CATEGORIES = ['AA', 'Aa', 'aa']
-
-function contributionAlleles(category) {
-  if (category === 'AA') return ['A']
-  if (category === 'aa') return ['a']
-  return ['A', 'a']
-}
-
-function combineAllele(a, b) {
-  if (a === 'A' && b === 'A') return 'AA'
-  if (a === 'a' && b === 'a') return 'aa'
-  return 'Aa'
-}
-
-function unionContribution(categories) {
-  const alleles = new Set()
-  for (const category of categories) {
-    for (const allele of contributionAlleles(category)) alleles.add(allele)
-  }
-  return [...alleles]
-}
-
-function combineParentAlleles(allelesA, allelesB) {
-  const result = new Set()
-  for (const a of allelesA) {
-    for (const b of allelesB) {
-      result.add(combineAllele(a, b))
-    }
-  }
-  return result
-}
-
-// Resolves the set of genetically possible genotype categories for every
-// individual, propagating known/entered genotypes down through parent ->
-// child relationships. Returns a Map<id, Set<'AA'|'Aa'|'aa'> | null>
-// (null = no data at all to infer from).
 export function resolveGenotypeCategories(individuals) {
   const byId = new Map(individuals.map((ind) => [ind.id, ind]))
   const memo = new Map()
-  const visiting = new Set()
 
   function resolve(id) {
     if (memo.has(id)) return memo.get(id)
-    if (visiting.has(id)) return null // cycle guard; shouldn't occur in valid data
-    visiting.add(id)
-
     const ind = byId.get(id)
-    let categories = null
+    let result
 
     if (ind?.genotype) {
-      categories = new Set([ind.genotype])
+      result = { known: true, certain: true, genotype: ind.genotype }
     } else {
       const parentIds = (ind?.parentIds ?? []).filter((pid) => byId.has(pid))
-      if (parentIds.length > 0) {
-        const parentAlleleSets = parentIds.map((pid) => {
-          const parentCategories = resolve(pid)
-          return parentCategories ? unionContribution(parentCategories) : ['A', 'a']
-        })
-        // A single recorded parent is combined with an unconstrained
-        // "unknown" second parent, since we have no data on them.
-        if (parentAlleleSets.length === 1) parentAlleleSets.push(['A', 'a'])
-        categories = combineParentAlleles(parentAlleleSets[0], parentAlleleSets[1])
+      const parents = parentIds.length === 2 ? parentIds.map(resolve) : null
+
+      if (parents && parents[0].certain && parents[1].certain) {
+        const grid = crossGenotypes(parents[0].genotype, parents[1].genotype)
+        const distinctGenotypes = [...new Set(grid.flat())]
+
+        if (distinctGenotypes.length === 1) {
+          result = { known: true, certain: true, genotype: distinctGenotypes[0] }
+        } else {
+          const phenotypes = new Set(distinctGenotypes.map(isDominantPhenotype))
+          if (phenotypes.size === 1) {
+            result = {
+              known: true,
+              certain: false,
+              dominant: phenotypes.has(true),
+              possibleGenotypes: distinctGenotypes,
+            }
+          } else {
+            result = { known: false }
+          }
+        }
+      } else {
+        result = { known: false }
       }
     }
 
-    visiting.delete(id)
-    memo.set(id, categories)
-    return categories
+    memo.set(id, result)
+    return result
   }
 
   const result = new Map()
@@ -79,47 +64,29 @@ export function resolveGenotypeCategories(individuals) {
   return result
 }
 
-// Turns a resolved category set into the display facts the UI needs:
-// exact genotype (if certain), phenotype, and carrier status.
-export function describeGenotype(categories, trait) {
-  if (!categories || categories.size === 0) {
-    return { known: false, genotype: null, phenotype: null, carrier: 'unknown', possibilities: [] }
+// Turns a resolved genotype record into the display facts the UI needs.
+export function describeGenotype(resolved, trait) {
+  if (!resolved?.known) {
+    return { known: false, genotype: null, phenotype: null, carrier: 'none' }
   }
 
-  const possibilities = CANONICAL_CATEGORIES.filter((c) => categories.has(c))
-  const phenotypesPresent = new Set(possibilities.map((g) => (g === 'aa' ? 'recessive' : 'dominant')))
-  const carrier = possibilities.includes('Aa')
-    ? possibilities.length === 1
-      ? 'confirmed'
-      : 'possible'
-    : 'none'
-
-  if (possibilities.length === 1) {
-    const genotype = possibilities[0]
+  if (resolved.certain) {
+    const genotype = resolved.genotype
     return {
       known: true,
       certain: true,
       genotype: toLetterGenotype(genotype, trait),
       phenotype: genotype === 'aa' ? trait.recessiveTrait : trait.dominantTrait,
-      carrier,
-      possibilities,
+      carrier: genotype === 'Aa' ? 'confirmed' : 'none',
     }
   }
-
-  const phenotype =
-    phenotypesPresent.size === 1
-      ? phenotypesPresent.has('recessive')
-        ? trait.recessiveTrait
-        : trait.dominantTrait
-      : null
 
   return {
     known: true,
     certain: false,
     genotype: null,
-    phenotype,
-    carrier,
-    possibilities,
+    phenotype: resolved.dominant ? trait.dominantTrait : trait.recessiveTrait,
+    carrier: resolved.possibleGenotypes.includes('Aa') ? 'possible' : 'none',
   }
 }
 
