@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import PunnettSquareView from './components/punnett/PunnettSquareView'
+import PedigreeView from './components/pedigree/PedigreeView'
 
-const TABS = [{ id: 'punnett', label: 'Punnett Square' }]
+const TABS = [
+  { id: 'punnett', label: 'Punnett Square' },
+  { id: 'pedigree', label: 'Pedigree Chart' },
+]
 
 export default function App() {
   const [tab, setTab] = useState('punnett')
@@ -31,6 +35,7 @@ export default function App() {
 
       <main className="px-6 py-10">
         {tab === 'punnett' && <PunnettSquareView />}
+        {tab === 'pedigree' && <PedigreeView />}
       </main>
     </div>
   )

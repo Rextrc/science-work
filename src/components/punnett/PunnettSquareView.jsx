@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { TRAITS } from '../../genetics/traits'
 import { crossGenotypes, summarizeCross, validateGenotype } from '../../genetics/core'
 import GenotypeSelect from './GenotypeSelect'
@@ -44,12 +44,12 @@ export default function PunnettSquareView() {
         recessiveTrait: `Recessive (${(genotype1[0] || 'a').toLowerCase()}${(genotype1[0] || 'a').toLowerCase()})`,
       }
 
-  const result = useMemo(() => {
-    if (!canCompute) return null
+  let result = null
+  if (canCompute) {
     const grid = crossGenotypes(validation1.genotype, validation2.genotype)
     const summary = summarizeCross(grid, activeTrait)
-    return { grid, summary }
-  }, [canCompute, validation1.genotype, validation2.genotype, activeTrait.dominantTrait, activeTrait.recessiveTrait])
+    result = { grid, summary }
+  }
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
