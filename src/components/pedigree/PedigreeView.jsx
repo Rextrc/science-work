@@ -7,10 +7,20 @@ import HelpPopup from '../shared/HelpPopup'
 
 const TRAIT_OPTIONS = [CONDITION_TRAIT, ...TRAITS]
 
+function relationSummary(ind, byId) {
+  const parents = ind.parentIds.map((id) => byId.get(id)?.name).filter(Boolean)
+  const spouse = ind.spouseId ? byId.get(ind.spouseId)?.name : null
+  const parts = []
+  if (parents.length > 0) parts.push(`child of ${parents.join(' & ')}`)
+  if (spouse) parts.push(`spouse of ${spouse}`)
+  return parts.join(', ') || 'no relations set'
+}
+
 export default function PedigreeView() {
   const [traitId, setTraitId] = useState(CONDITION_TRAIT.id)
   const trait = TRAIT_OPTIONS.find((t) => t.id === traitId)
   const [individuals, setIndividuals] = useState([])
+  const byId = new Map(individuals.map((ind) => [ind.id, ind]))
 
   function handleAdd(individual) {
     setIndividuals((prev) => [...prev, individual])
@@ -23,6 +33,7 @@ export default function PedigreeView() {
         .map((ind) => ({
           ...ind,
           parentIds: ind.parentIds.filter((pid) => pid !== id),
+          spouseId: ind.spouseId === id ? null : ind.spouseId,
         })),
     )
   }
@@ -34,15 +45,14 @@ export default function PedigreeView() {
   return (
     <div className="mx-auto max-w-4xl space-y-8">
       <HelpPopup id="pedigree" title="How to use this">
-        Add family members one at a time, starting with the oldest generation. Pick their parents from the list once
-        they exist. Squares are boys, circles are girls — check the legend below for what filled shapes and dots
-        mean.
+        Add family members one at a time, oldest generation first. When you add someone, pick their parent(s) from
+        the list — or their spouse, if they married into the family. The chart and generation layout are worked out
+        for you automatically.
       </HelpPopup>
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Pedigree Chart Builder</h1>
         <p className="mt-1 text-slate-600">
-          Add family members generation by generation to build a pedigree, tracking one trait
-          or condition at a time.
+          Build a family tree by adding people one at a time, tracking one trait or condition at a time.
         </p>
       </div>
 
@@ -61,17 +71,22 @@ export default function PedigreeView() {
         </select>
       </div>
 
+      <IndividualForm trait={trait} individuals={individuals} onAdd={handleAdd} />
+
       <PedigreeChart individuals={individuals} trait={trait} />
 
-      <PedigreeLegend />
-
-      <IndividualForm trait={trait} individuals={individuals} onAdd={handleAdd} />
+      <details className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <summary className="cursor-pointer text-sm font-medium text-slate-600">What do the symbols mean?</summary>
+        <div className="mt-4">
+          <PedigreeLegend />
+        </div>
+      </details>
 
       {individuals.length > 0 && (
         <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-6">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Individuals ({individuals.length})
+              Family members ({individuals.length})
             </h3>
             <button
               onClick={handleClearAll}
@@ -89,7 +104,7 @@ export default function PedigreeView() {
                   <span>
                     <span className="font-medium text-slate-800">{ind.name}</span>{' '}
                     <span className="text-slate-400">
-                      · Gen {ind.generation} · {ind.sex}
+                      · {ind.sex} · {relationSummary(ind, byId)}
                       {ind.genotype ? ` · ${ind.genotype}` : ''}
                     </span>
                   </span>

@@ -17,8 +17,15 @@ export function computeLayout(individuals) {
   }
   const generations = [...byGeneration.keys()].sort((a, b) => a - b)
 
-  // A "spouse" is anyone who co-parents at least one child in the chart.
+  // A "spouse" is either an explicit partner link, or anyone who
+  // co-parents at least one child in the chart.
   const spouseOf = new Map()
+  for (const ind of individuals) {
+    if (ind.spouseId && byId.has(ind.spouseId)) {
+      if (!spouseOf.has(ind.id)) spouseOf.set(ind.id, ind.spouseId)
+      if (!spouseOf.has(ind.spouseId)) spouseOf.set(ind.spouseId, ind.id)
+    }
+  }
   for (const ind of individuals) {
     if (ind.parentIds?.length === 2) {
       const [a, b] = ind.parentIds

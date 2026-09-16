@@ -64,7 +64,7 @@ export default function PedigreeChart({ individuals, trait }) {
   if (individuals.length === 0) {
     return (
       <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-slate-300 text-slate-400">
-        Add individuals below to start building the pedigree.
+        Add your first family member above to start building the pedigree.
       </div>
     )
   }
